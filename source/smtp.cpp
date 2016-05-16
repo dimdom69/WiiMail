@@ -4,12 +4,11 @@
 
 #include "smtp.h"
 
-SMTP::SMTP(Internet* _internet, char* _address, int _port, char* _username, char* _password, bool _ssl, bool _tls)
+SMTP::SMTP(Internet* _internet, char* _address, int _port, char* _username, char* _password, int _ssl)
 	: Server(_internet, _address, _port, _username, _password, _ssl){
 	response = new char[READ_BUFFER_SIZE];
 	message = new char[SEND_BUFFER_SIZE];
 	error = false;
-	tls = _tls;
 	authPlain = false;
 	authLogin = false;
 }
@@ -23,7 +22,7 @@ bool SMTP::sendMail(email_t* _email){
 	email = _email;
 	connect();
 	hello();
-	if(tls){
+	if(ssl == USE_TLS){
 		startTLS();
 	}
 	parseHello();
@@ -76,7 +75,12 @@ bool SMTP::parseHello(){
 }
 
 bool SMTP::connect(){
-	return internet->connect(address, port, TCP, ssl);
+	if(ssl == USE_SSL){
+		return internet->connect(address, port, TCP, true);
+	}
+	else{
+		return internet->connect(address, port, TCP, false);
+	}
 }
 
 bool SMTP::hello(){

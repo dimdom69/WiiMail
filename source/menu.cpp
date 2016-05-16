@@ -33,7 +33,7 @@ static GuiWindow * mainWindow = NULL;
 static lwp_t guithread = LWP_THREAD_NULL;
 static bool guiHalt = true;
 static GuiText* netTxt = NULL;
-Internet *internet = NULL;
+Internet* internet = NULL;
 Settings* settings = NULL;
 
 /****************************************************************************
@@ -401,289 +401,176 @@ static int MenuSettings()
 	return menu;
 }
 
-
-/****************************************************************************
- * MenuSmtpSettings
- ***************************************************************************/
 static int MenuSmtpSettings()
 {
 	int menu = MENU_NONE;
-	char buffer[128];
+	int ret;
+	int i = 0;
+	bool firstRun = true;
+	char buffer[24];
+	OptionList options;
+	sprintf(options.name[i++], "Server");
+	sprintf(options.name[i++], "Port");
+	sprintf(options.name[i++], "Username");
+	sprintf(options.name[i++], "Password");
+	sprintf(options.name[i++], "SSL/TLS");
+	sprintf(options.name[i++], "Name");
+	sprintf(options.name[i++], "Email");
+	sprintf(options.name[i++], "Signature");
+	options.length = i;
 
-	GuiText titleTxt("SMTP Settings", 28, (GXColor){255, 255, 255, 255});
+	GuiText titleTxt("SMTP", 28, (GXColor){255, 255, 255, 255});
 	titleTxt.SetAlignment(ALIGN_LEFT, ALIGN_TOP);
 	titleTxt.SetPosition(50,50);
 
 	GuiSound btnSoundOver(button_over_pcm, button_over_pcm_size, SOUND_PCM);
 	GuiImageData btnOutline(button_png);
 	GuiImageData btnOutlineOver(button_over_png);
-	GuiImageData btnLargeOutline(button_large_png);
-	GuiImageData btnLargeOutlineOver(button_large_over_png);
 
 	GuiTrigger trigA;
 	trigA.SetSimpleTrigger(-1, WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A, PAD_BUTTON_A);
-	GuiTrigger trigHome;
-	trigHome.SetButtonOnlyTrigger(-1, WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME, 0);
 
-	GuiText serverBtnTxt("Server", 22, (GXColor){0, 0, 0, 255});
-	serverBtnTxt.SetWrap(true, btnLargeOutline.GetWidth()-30);
-	GuiImage serverBtnImg(&btnLargeOutline);
-	GuiImage serverBtnImgOver(&btnLargeOutlineOver);
-	GuiButton serverBtn(btnLargeOutline.GetWidth(), btnLargeOutline.GetHeight());
-	serverBtn.SetAlignment(ALIGN_LEFT, ALIGN_TOP);
-	serverBtn.SetPosition(50, 100);
-	serverBtn.SetLabel(&serverBtnTxt);
-	serverBtn.SetImage(&serverBtnImg);
-	serverBtn.SetImageOver(&serverBtnImgOver);
-	serverBtn.SetSoundOver(&btnSoundOver);
-	serverBtn.SetTrigger(&trigA);
-	serverBtn.SetEffectGrow();
-
-	GuiText portBtnTxt("Port", 22, (GXColor){0, 0, 0, 255});
-	portBtnTxt.SetWrap(true, btnLargeOutline.GetWidth()-30);
-	GuiImage portBtnImg(&btnLargeOutline);
-	GuiImage portBtnImgOver(&btnLargeOutlineOver);
-	GuiButton portBtn(btnLargeOutline.GetWidth(), btnLargeOutline.GetHeight());
-	portBtn.SetAlignment(ALIGN_LEFT, ALIGN_TOP);
-	portBtn.SetPosition(250, 100);
-	portBtn.SetLabel(&portBtnTxt);
-	portBtn.SetImage(&portBtnImg);
-	portBtn.SetImageOver(&portBtnImgOver);
-	portBtn.SetSoundOver(&btnSoundOver);
-	portBtn.SetTrigger(&trigA);
-	portBtn.SetEffectGrow();
-
-	GuiText userBtnTxt("Username", 22, (GXColor){0, 0, 0, 255});
-	userBtnTxt.SetWrap(true, btnLargeOutline.GetWidth()-30);
-	GuiImage userBtnImg(&btnLargeOutline);
-	GuiImage userBtnImgOver(&btnLargeOutlineOver);
-	GuiButton userBtn(btnLargeOutline.GetWidth(), btnLargeOutline.GetHeight());
-	userBtn.SetAlignment(ALIGN_LEFT, ALIGN_TOP);
-	userBtn.SetPosition(50, 200);
-	userBtn.SetLabel(&userBtnTxt);
-	userBtn.SetImage(&userBtnImg);
-	userBtn.SetImageOver(&userBtnImgOver);
-	userBtn.SetSoundOver(&btnSoundOver);
-	userBtn.SetTrigger(&trigA);
-	userBtn.SetEffectGrow();
-
-	GuiText passBtnTxt("Password", 22, (GXColor){0, 0, 0, 255});
-	passBtnTxt.SetWrap(true, btnLargeOutline.GetWidth()-30);
-	GuiImage passBtnImg(&btnLargeOutline);
-	GuiImage passBtnImgOver(&btnLargeOutlineOver);
-	GuiButton passBtn(btnLargeOutline.GetWidth(), btnLargeOutline.GetHeight());
-	passBtn.SetAlignment(ALIGN_LEFT, ALIGN_TOP);
-	passBtn.SetPosition(250, 200);
-	passBtn.SetLabel(&passBtnTxt);
-	passBtn.SetImage(&passBtnImg);
-	passBtn.SetImageOver(&passBtnImgOver);
-	passBtn.SetSoundOver(&btnSoundOver);
-	passBtn.SetTrigger(&trigA);
-	passBtn.SetEffectGrow();
-
-	GuiText nameBtnTxt("Name", 22, (GXColor){0, 0, 0, 255});
-	GuiImage nameBtnImg(&btnOutline);
-	GuiImage nameBtnImgOver(&btnOutlineOver);
-	GuiButton nameBtn(btnOutline.GetWidth(), btnOutline.GetHeight());
-	nameBtn.SetAlignment(ALIGN_LEFT, ALIGN_TOP);
-	nameBtn.SetPosition(50, 300);
-	nameBtn.SetLabel(&nameBtnTxt);
-	nameBtn.SetImage(&nameBtnImg);
-	nameBtn.SetImageOver(&nameBtnImgOver);
-	nameBtn.SetSoundOver(&btnSoundOver);
-	nameBtn.SetTrigger(&trigA);
-	nameBtn.SetTrigger(&trigHome);
-	nameBtn.SetEffectGrow();
-
-	GuiText emailBtnTxt("Email", 22, (GXColor){0, 0, 0, 255});
-	GuiImage emailBtnImg(&btnOutline);
-	GuiImage emailBtnImgOver(&btnOutlineOver);
-	GuiButton emailBtn(btnOutline.GetWidth(), btnOutline.GetHeight());
-	emailBtn.SetAlignment(ALIGN_LEFT, ALIGN_TOP);
-	emailBtn.SetPosition(250, 300);
-	emailBtn.SetLabel(&emailBtnTxt);
-	emailBtn.SetImage(&emailBtnImg);
-	emailBtn.SetImageOver(&emailBtnImgOver);
-	emailBtn.SetSoundOver(&btnSoundOver);
-	emailBtn.SetTrigger(&trigA);
-	emailBtn.SetTrigger(&trigHome);
-	emailBtn.SetEffectGrow();
-
-	GuiText sigBtnTxt("Signature", 22, (GXColor){0, 0, 0, 255});
-	GuiImage sigBtnImg(&btnOutline);
-	GuiImage sigBtnImgOver(&btnOutlineOver);
-	GuiButton sigBtn(btnOutline.GetWidth(), btnOutline.GetHeight());
-	sigBtn.SetAlignment(ALIGN_LEFT, ALIGN_TOP);
-	sigBtn.SetPosition(450, 300);
-	sigBtn.SetLabel(&sigBtnTxt);
-	sigBtn.SetImage(&sigBtnImg);
-	sigBtn.SetImageOver(&sigBtnImgOver);
-	sigBtn.SetSoundOver(&btnSoundOver);
-	sigBtn.SetTrigger(&trigA);
-	sigBtn.SetTrigger(&trigHome);
-	sigBtn.SetEffectGrow();
-
-	GuiText backBtnTxt("Back", 22, (GXColor){0, 0, 0, 255});
+	GuiText backBtnTxt("Go Back", 22, (GXColor){0, 0, 0, 255});
 	GuiImage backBtnImg(&btnOutline);
 	GuiImage backBtnImgOver(&btnOutlineOver);
 	GuiButton backBtn(btnOutline.GetWidth(), btnOutline.GetHeight());
 	backBtn.SetAlignment(ALIGN_LEFT, ALIGN_BOTTOM);
-	backBtn.SetPosition(50, -35);
+	backBtn.SetPosition(100, -35);
 	backBtn.SetLabel(&backBtnTxt);
 	backBtn.SetImage(&backBtnImg);
 	backBtn.SetImageOver(&backBtnImgOver);
 	backBtn.SetSoundOver(&btnSoundOver);
 	backBtn.SetTrigger(&trigA);
-	backBtn.SetTrigger(&trigHome);
 	backBtn.SetEffectGrow();
 
-	GuiText saveBtnTxt("Save", 22, (GXColor){0, 0, 0, 255});
-	GuiImage saveBtnImg(&btnOutline);
-	GuiImage saveBtnImgOver(&btnOutlineOver);
-	GuiButton saveBtn(btnOutline.GetWidth(), btnOutline.GetHeight());
-	saveBtn.SetAlignment(ALIGN_LEFT, ALIGN_BOTTOM);
-	saveBtn.SetPosition(250, -35);
-	saveBtn.SetLabel(&saveBtnTxt);
-	saveBtn.SetImage(&saveBtnImg);
-	saveBtn.SetImageOver(&saveBtnImgOver);
-	saveBtn.SetSoundOver(&btnSoundOver);
-	saveBtn.SetTrigger(&trigA);
-	saveBtn.SetTrigger(&trigHome);
-	saveBtn.SetEffectGrow();
+	GuiOptionBrowser optionBrowser(552, 248, &options);
+	optionBrowser.SetPosition(0, 108);
+	optionBrowser.SetAlignment(ALIGN_CENTRE, ALIGN_TOP);
+	optionBrowser.SetCol2Position(185);
 
 	HaltGui();
 	GuiWindow w(screenwidth, screenheight);
-	w.Append(&titleTxt);
-	w.Append(&serverBtn);
-	w.Append(&portBtn);
-	w.Append(&userBtn);
-	w.Append(&passBtn);
-	w.Append(&nameBtn);
-	w.Append(&emailBtn);
-	w.Append(&sigBtn);
 	w.Append(&backBtn);
-	w.Append(&saveBtn);
-
+	mainWindow->Append(&optionBrowser);
 	mainWindow->Append(&w);
-
+	mainWindow->Append(&titleTxt);
 	ResumeGui();
 
 	while(menu == MENU_NONE)
 	{
 		usleep(THREAD_SLEEP);
 
-		if(serverBtn.GetState() == STATE_CLICKED)
+		ret = optionBrowser.GetClickedOption();
+
+		switch (ret)
 		{
-			OnScreenKeyboard(settings->smtpServer, 128);
+			case 0:
+				OnScreenKeyboard(settings->smtpServer, 128);
+				break;
+
+			case 1:
+				sprintf(buffer, "%d", settings->smtpPort);
+				OnScreenKeyboard(buffer, 24);
+				settings->smtpPort = strtol(buffer, NULL, 10);
+				break;
+
+			case 2:
+				OnScreenKeyboard(settings->smtpUsername, 128);
+				break;
+
+			case 3:
+				OnScreenKeyboard(settings->smtpPassword, 128);
+				break;
+
+			case 4:
+				settings->smtpSSL++;
+				if (settings->smtpSSL > 2)
+					settings->smtpSSL = 0;
+				break;
+
+			case 5:
+				OnScreenKeyboard(settings->name, 128);
+				break;
+
+			case 6:
+				OnScreenKeyboard(settings->email, 128);
+				break;
+
+			case 7:
+				OnScreenKeyboard(settings->signature, 1024);
+				break;
 		}
 
-		if(portBtn.GetState() == STATE_CLICKED)
+		if(ret >= 0 || firstRun)
 		{
-			sprintf(buffer, "%d", settings->smtpPort);
-			OnScreenKeyboard(buffer, 128);
-			settings->smtpPort = strtol(buffer, NULL, 10);
-		}
+			firstRun = false;
 
-		if(userBtn.GetState() == STATE_CLICKED)
-		{
-			OnScreenKeyboard(settings->smtpUsername, 128);
-		}
+			// correct load/save methods out of bounds
+			if(settings->smtpSSL > 2)
+				settings->smtpSSL = 0;
 
-		if(passBtn.GetState() == STATE_CLICKED)
-		{
-			OnScreenKeyboard(settings->smtpPassword, 128);
-		}
+			snprintf (options.value[0], 128, "%s", settings->smtpServer);
+			snprintf (options.value[1], 128, "%d", settings->smtpPort);
+			snprintf (options.value[2], 128, "%s", settings->smtpUsername);
+			snprintf (options.value[3], 128, "%s", settings->smtpPassword);
 
-		if(nameBtn.GetState() == STATE_CLICKED)
-		{
-			OnScreenKeyboard(settings->name, 128);
-		}
+			if (settings->smtpSSL == NO_SSL) sprintf (options.value[4],"No SSL/TLS");
+			else if (settings->smtpSSL == USE_SSL) sprintf (options.value[4],"Use SSL");
+			else if (settings->smtpSSL == USE_TLS) sprintf (options.value[4],"Use TLS");
 
-		if(emailBtn.GetState() == STATE_CLICKED)
-		{
-			OnScreenKeyboard(settings->email, 128);
-		}
+			snprintf (options.value[5], 128, "%s", settings->name);
+			snprintf (options.value[6], 128, "%s", settings->email);
+			snprintf (options.value[7], 1024, "%s", settings->signature);
 
-		if(sigBtn.GetState() == STATE_CLICKED)
-		{
-			OnScreenKeyboard(settings->signature, 1024);
-		}
-
-		if(saveBtn.GetState() == STATE_CLICKED)
-		{
-			settings->save("WiiMail.xml");
-			menu = MENU_SETTINGS;
+			optionBrowser.TriggerUpdate();
 		}
 
 		if(backBtn.GetState() == STATE_CLICKED)
 		{
+			settings->save("WiiMail.xml");
 			menu = MENU_SETTINGS;
 		}
 	}
-
 	HaltGui();
+	mainWindow->Remove(&optionBrowser);
 	mainWindow->Remove(&w);
+	mainWindow->Remove(&titleTxt);
 	return menu;
 }
 
 
-/****************************************************************************
- * MenuPopSettings
- ***************************************************************************/
 static int MenuPopSettings()
 {
 	int menu = MENU_NONE;
+	int ret;
+	int i = 0;
+	bool firstRun = true;
+	char buffer[24];
+	OptionList options;
+	sprintf(options.name[i++], "Server");
+	sprintf(options.name[i++], "Port");
+	sprintf(options.name[i++], "Username");
+	sprintf(options.name[i++], "Password");
+	sprintf(options.name[i++], "SSL/TLS");
+	options.length = i;
 
-	GuiText titleTxt("Settings", 28, (GXColor){255, 255, 255, 255});
+	GuiText titleTxt("POP", 28, (GXColor){255, 255, 255, 255});
 	titleTxt.SetAlignment(ALIGN_LEFT, ALIGN_TOP);
 	titleTxt.SetPosition(50,50);
 
 	GuiSound btnSoundOver(button_over_pcm, button_over_pcm_size, SOUND_PCM);
 	GuiImageData btnOutline(button_png);
 	GuiImageData btnOutlineOver(button_over_png);
-	GuiImageData btnLargeOutline(button_large_png);
-	GuiImageData btnLargeOutlineOver(button_large_over_png);
 
 	GuiTrigger trigA;
 	trigA.SetSimpleTrigger(-1, WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A, PAD_BUTTON_A);
-	GuiTrigger trigHome;
-	trigHome.SetButtonOnlyTrigger(-1, WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME, 0);
 
-	GuiText smtpBtnTxt("SMTP", 22, (GXColor){0, 0, 0, 255});
-	smtpBtnTxt.SetWrap(true, btnLargeOutline.GetWidth()-30);
-	GuiImage smtpBtnImg(&btnLargeOutline);
-	GuiImage smtpBtnImgOver(&btnLargeOutlineOver);
-	GuiButton smtpBtn(btnLargeOutline.GetWidth(), btnLargeOutline.GetHeight());
-	smtpBtn.SetAlignment(ALIGN_LEFT, ALIGN_TOP);
-	smtpBtn.SetPosition(50, 50);
-	smtpBtn.SetLabel(&smtpBtnTxt);
-	smtpBtn.SetImage(&smtpBtnImg);
-	smtpBtn.SetImageOver(&smtpBtnImgOver);
-	smtpBtn.SetSoundOver(&btnSoundOver);
-	smtpBtn.SetTrigger(&trigA);
-	smtpBtn.SetEffectGrow();
-
-	GuiText popBtnTxt("POP", 22, (GXColor){0, 0, 0, 255});
-	popBtnTxt.SetWrap(true, btnLargeOutline.GetWidth()-30);
-	GuiImage popBtnImg(&btnLargeOutline);
-	GuiImage popBtnImgOver(&btnLargeOutlineOver);
-	GuiButton popBtn(btnLargeOutline.GetWidth(), btnLargeOutline.GetHeight());
-	popBtn.SetAlignment(ALIGN_LEFT, ALIGN_TOP);
-	popBtn.SetPosition(150, 50);
-	popBtn.SetLabel(&popBtnTxt);
-	popBtn.SetImage(&popBtnImg);
-	popBtn.SetImageOver(&popBtnImgOver);
-	popBtn.SetSoundOver(&btnSoundOver);
-	popBtn.SetTrigger(&trigA);
-	popBtn.SetEffectGrow();
-
-	GuiText backBtnTxt("Back", 22, (GXColor){0, 0, 0, 255});
-	backBtnTxt.SetWrap(true, btnLargeOutline.GetWidth()-30);
-	GuiImage backBtnImg(&btnLargeOutline);
-	GuiImage backBtnImgOver(&btnLargeOutlineOver);
-	GuiButton backBtn(btnLargeOutline.GetWidth(), btnLargeOutline.GetHeight());
-	backBtn.SetAlignment(ALIGN_LEFT, ALIGN_TOP);
-	backBtn.SetPosition(50, 120);
+	GuiText backBtnTxt("Go Back", 22, (GXColor){0, 0, 0, 255});
+	GuiImage backBtnImg(&btnOutline);
+	GuiImage backBtnImgOver(&btnOutlineOver);
+	GuiButton backBtn(btnOutline.GetWidth(), btnOutline.GetHeight());
+	backBtn.SetAlignment(ALIGN_LEFT, ALIGN_BOTTOM);
+	backBtn.SetPosition(100, -35);
 	backBtn.SetLabel(&backBtnTxt);
 	backBtn.SetImage(&backBtnImg);
 	backBtn.SetImageOver(&backBtnImgOver);
@@ -691,39 +578,82 @@ static int MenuPopSettings()
 	backBtn.SetTrigger(&trigA);
 	backBtn.SetEffectGrow();
 
+	GuiOptionBrowser optionBrowser(552, 248, &options);
+	optionBrowser.SetPosition(0, 108);
+	optionBrowser.SetAlignment(ALIGN_CENTRE, ALIGN_TOP);
+	optionBrowser.SetCol2Position(185);
+
 	HaltGui();
 	GuiWindow w(screenwidth, screenheight);
-	w.Append(&titleTxt);
-	w.Append(&smtpBtn);
-	w.Append(&popBtn);
 	w.Append(&backBtn);
-
+	mainWindow->Append(&optionBrowser);
 	mainWindow->Append(&w);
-
+	mainWindow->Append(&titleTxt);
 	ResumeGui();
 
 	while(menu == MENU_NONE)
 	{
 		usleep(THREAD_SLEEP);
 
-		if(smtpBtn.GetState() == STATE_CLICKED)
+		ret = optionBrowser.GetClickedOption();
+
+		switch (ret)
 		{
-			menu = MENU_SMTP_SETTINGS;
+			case 0:
+				OnScreenKeyboard(settings->popServer, 128);
+				break;
+
+			case 1:
+				sprintf(buffer, "%d", settings->popPort);
+				OnScreenKeyboard(buffer, 24);
+				settings->popPort = strtol(buffer, NULL, 10);
+				break;
+
+			case 2:
+				OnScreenKeyboard(settings->popUsername, 128);
+				break;
+
+			case 3:
+				OnScreenKeyboard(settings->popPassword, 128);
+				break;
+
+			case 4:
+				settings->popSSL++;
+				if (settings->popSSL > 2)
+					settings->popSSL = 0;
+				break;
 		}
 
-		if(popBtn.GetState() == STATE_CLICKED)
+		if(ret >= 0 || firstRun)
 		{
-			menu = MENU_POP_SETTINGS;
+			firstRun = false;
+
+			// correct load/save methods out of bounds
+			if(settings->popSSL > 2)
+				settings->popSSL = 0;
+
+			snprintf (options.value[0], 128, "%s", settings->popServer);
+			snprintf (options.value[1], 128, "%d", settings->popPort);
+			snprintf (options.value[2], 128, "%s", settings->popUsername);
+			snprintf (options.value[3], 128, "%s", settings->popPassword);
+
+			if (settings->popSSL == NO_SSL) sprintf (options.value[4],"No SSL/TLS");
+			else if (settings->popSSL == USE_SSL) sprintf (options.value[4],"Use SSL");
+			else if (settings->popSSL == USE_TLS) sprintf (options.value[4],"Use TLS");
+
+			optionBrowser.TriggerUpdate();
 		}
 
 		if(backBtn.GetState() == STATE_CLICKED)
 		{
-			menu = MENU_HOME;
+			settings->save("WiiMail.xml");
+			menu = MENU_SETTINGS;
 		}
 	}
-
 	HaltGui();
+	mainWindow->Remove(&optionBrowser);
 	mainWindow->Remove(&w);
+	mainWindow->Remove(&titleTxt);
 	return menu;
 }
 
@@ -919,7 +849,7 @@ static int MenuCompose()
 	email->message = new char[1024];
 	email->message[0] = '\0';
 
-	SMTP* smtp = new SMTP(internet, settings->smtpServer, settings->smtpPort, settings->smtpUsername, settings->smtpPassword, true, false);
+	SMTP* smtp = new SMTP(internet, settings->smtpServer, settings->smtpPort, settings->smtpUsername, settings->smtpPassword, settings->smtpSSL);
 
 	int menu = MENU_NONE;
 

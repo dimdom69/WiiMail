@@ -61,7 +61,7 @@
 
 class SMTP : public Server{
 public:
-	SMTP(Internet* _internet, char* _address, int _port, char* _username, char* _password, bool _ssl, bool _tls);
+	SMTP(Internet* _internet, char* _address, int _port, char* _username, char* _password, int _ssl);
 	~SMTP();
 	bool sendMail(email_t* _email);
 
@@ -86,7 +86,6 @@ private:
 	char* message;
 	int statusCode;
 	bool error;
-	bool tls;
 	bool authPlain;
 	bool authLogin;
 };

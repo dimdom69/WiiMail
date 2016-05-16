@@ -8,9 +8,13 @@ typedef enum{
 	SMTP_SERVER
 } server_t;
 
+#define NO_SSL 0
+#define USE_SSL 1
+#define USE_TLS 2
+
 class Server{
 public:
-	Server(Internet* _internet, char* _address, int _port, char* _username, char* _password, bool _ssl);
+	Server(Internet* _internet, char* _address, int _port, char* _username, char* _password, int _ssl);
 	~Server();
 
 protected:
@@ -20,7 +24,7 @@ protected:
 	char* username;
 	char* password;
 	server_t type;
-	bool ssl;
+	int ssl;
 };
 
 #endif

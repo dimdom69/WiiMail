@@ -34,36 +34,38 @@ void Settings::loadDefaults(){
 	smtpPort = 25;
 	smtpUsername[0] = '\0';
 	smtpPassword[0] = '\0';
-	smtpSsl = false;
-	smtpTls = false;
+	smtpSSL = 0;
 
 	popServer[0] = '\0';
 	popPort = 110;
 	popUsername[0] = '\0';
 	popPassword[0] = '\0';
-	popSsl = false;
-	popTls = false;
+	popSSL = 0;
 
 	name[0] = '\0';
 	email[0] = '\0';
-	signature[0] = '\0';
+	strcpy(signature, "Sent from WiiMail");
 }
 
 bool Settings::load(char* file){
+	if (fp = fopen(file, "r")){
+        fclose(fp);
+    }
+    else{
+    	loadDefaults();
+    }
     doc->LoadFile(file);
     strncpy(smtpServer, doc->FirstChildElement("smtpServer")->Attribute("smtpServer"), 128);
     smtpPort = doc->FirstChildElement("smtpPort")->IntAttribute("smtpPort");
     strncpy(smtpUsername, doc->FirstChildElement("smtpUsername")->Attribute("smtpUsername"), 128);
     strncpy(smtpPassword, doc->FirstChildElement("smtpPassword")->Attribute("smtpPassword"), 128);
-    smtpSsl = doc->FirstChildElement("smtpSsl")->BoolAttribute("smtpSsl");
-    smtpTls = doc->FirstChildElement("smtpTls")->BoolAttribute("smtpTls");
+    smtpSSL = doc->FirstChildElement("smtpSSL")->IntAttribute("smtpSSL");
 
     strncpy(popServer, doc->FirstChildElement("popServer")->Attribute("popServer"), 128);
     popPort = doc->FirstChildElement("popPort")->IntAttribute("popPort");
     strncpy(popUsername, doc->FirstChildElement("popUsername")->Attribute("popUsername"), 128);
     strncpy(popPassword, doc->FirstChildElement("popPassword")->Attribute("popPassword"), 128);
-    popSsl = doc->FirstChildElement("popSsl")->BoolAttribute("popSsl");
-    popTls = doc->FirstChildElement("popTls")->BoolAttribute("popTls");
+    popSSL = doc->FirstChildElement("popSsl")->IntAttribute("popSSL");
 
     strncpy(name, doc->FirstChildElement("name")->Attribute("name"), 128);
     strncpy(email, doc->FirstChildElement("email")->Attribute("email"), 128);
@@ -93,21 +95,10 @@ bool Settings::save(char* file){
 	printer.OpenElement("smtpPassword");
 	printer.PushAttribute("smtpPassword", smtpPassword);
 	printer.CloseElement();
-	if(smtpSsl){
-		strcpy(buffer, "true");
-	}
-	else{
-		strcpy(buffer, "false");
-	}
-	printer.OpenElement("smtpSsl");
-	printer.PushAttribute("smtpSsl", buffer);
+	sprintf(buffer, "%d", smtpSSL);
+	printer.OpenElement("smtpSSL");
+	printer.PushAttribute("smtpSSL", buffer);
 	printer.CloseElement();
-	if(smtpTls){
-		strcpy(buffer, "true");
-	}
-	else{
-		strcpy(buffer, "false");
-	}
 	printer.OpenElement("smtpTls");
 	printer.PushAttribute("smtpTls", buffer);
 	printer.CloseElement();
@@ -125,23 +116,9 @@ bool Settings::save(char* file){
 	printer.OpenElement("popPassword");
 	printer.PushAttribute("popPassword", popPassword);
 	printer.CloseElement();
-	if(popSsl){
-		strcpy(buffer, "true");
-	}
-	else{
-		strcpy(buffer, "false");
-	}
-	printer.OpenElement("popSsl");
-	printer.PushAttribute("popSsl", buffer);
-	printer.CloseElement();
-	if(popTls){
-		strcpy(buffer, "true");
-	}
-	else{
-		strcpy(buffer, "false");
-	}
-	printer.OpenElement("popTls");
-	printer.PushAttribute("popTls", buffer);
+	sprintf(buffer, "%d", popSSL);
+	printer.OpenElement("popSSL");
+	printer.PushAttribute("popSSL", buffer);
 	printer.CloseElement();
 
 	printer.OpenElement("name");

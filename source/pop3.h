@@ -5,7 +5,7 @@
 
 class POP3 : public Server{
 public:
-	POP3(Internet* _internet, char* _address, int _port, char* _username, char* _password, bool _ssl);
+	POP3(Internet* _internet, char* _address, int _port, char* _username, char* _password, int _ssl);
 	~POP3();
 	bool getMail();
 };

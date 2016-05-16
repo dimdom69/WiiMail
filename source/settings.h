@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "tinyxml2.h"
+#include "server.h"
 
 using namespace tinyxml2;
 
@@ -19,15 +20,13 @@ public:
 	int smtpPort;
 	char* smtpUsername;
 	char* smtpPassword;
-	bool smtpSsl;
-	bool smtpTls;
+	int smtpSSL;
 
 	char* popServer;
 	int popPort;
 	char* popUsername;
 	char* popPassword;
-	bool popSsl;
-	bool popTls;
+	int popSSL;
 
 	char* name;
 	char* email;

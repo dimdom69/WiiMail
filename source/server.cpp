@@ -1,6 +1,6 @@
 #include "server.h"
 
-Server::Server(Internet* _internet, char* _address, int _port, char* _username, char* _password, bool _ssl){
+Server::Server(Internet* _internet, char* _address, int _port, char* _username, char* _password, int _ssl){
 	internet = _internet;
 	address = _address;
 	port = _port;
