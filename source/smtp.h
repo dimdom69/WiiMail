@@ -66,7 +66,6 @@ public:
 	bool sendMail(email_t* _email);
 
 private:
-	bool sslSetup();
 	bool write(char* input);
 	bool read();
 	bool parse();
