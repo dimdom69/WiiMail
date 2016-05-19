@@ -121,6 +121,8 @@ bool SMTP::authorizeLogin(){
 	read();
 	write((char*)passEncoded);
 	read();
+	delete [] userEncoded;
+	delete [] passEncoded;
 	return error;
 }
 
@@ -141,6 +143,7 @@ bool SMTP::authorizePlain(){
 	read();
 	write((char*)bothEncoded);
 	read();
+	delete [] bothEncoded;
 	return error;
 }
 

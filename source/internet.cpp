@@ -196,11 +196,14 @@ char* Internet::getIpByHostname(char *domain){
 	struct hostent *host = NULL;
 	host = net_gethostbyname(domain);
 	if(host == NULL) {
+		setState(domain);
 		return NULL;
 	}
 	struct sockaddr_in tmp;
 	memcpy(&tmp.sin_addr,host->h_addr_list[0],host->h_length);
-	return inet_ntoa(tmp.sin_addr);
+	char* returnAddr = inet_ntoa(tmp.sin_addr);
+	setState(returnAddr);
+	return returnAddr;
 };
 
 
@@ -212,6 +215,7 @@ char* Internet::addressToIp(char *addressIn){
 			return getIpByHostname(addressIn);
 		}
 	}
+	setState(addressIn);
 	return addressIn; //already ip
 }
 

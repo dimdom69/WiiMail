@@ -65,7 +65,7 @@ bool Settings::load(char* file){
     popPort = doc->FirstChildElement("popPort")->IntAttribute("popPort");
     strncpy(popUsername, doc->FirstChildElement("popUsername")->Attribute("popUsername"), 128);
     strncpy(popPassword, doc->FirstChildElement("popPassword")->Attribute("popPassword"), 128);
-    popSSL = doc->FirstChildElement("popSsl")->IntAttribute("popSSL");
+    popSSL = doc->FirstChildElement("popSSL")->IntAttribute("popSSL");
 
     strncpy(name, doc->FirstChildElement("name")->Attribute("name"), 128);
     strncpy(email, doc->FirstChildElement("email")->Attribute("email"), 128);
@@ -98,9 +98,6 @@ bool Settings::save(char* file){
 	sprintf(buffer, "%d", smtpSSL);
 	printer.OpenElement("smtpSSL");
 	printer.PushAttribute("smtpSSL", buffer);
-	printer.CloseElement();
-	printer.OpenElement("smtpTls");
-	printer.PushAttribute("smtpTls", buffer);
 	printer.CloseElement();
 
 	printer.OpenElement("popServer");

@@ -1,8 +1,9 @@
 #ifndef _POP3_H_
 #define _POP3_H_
 
-#define READ_BUFFER_SIZE 2048
+#define READ_BUFFER_SIZE 2024
 #define SEND_BUFFER_SIZE 512
+#define DATA_BUFFER_SIZE 10000
 
 #include "server.h"
 #include "email.h"
@@ -14,6 +15,9 @@ public:
 	~POP3();
 	//Retrieves new messages and adds to sqlite database
 	bool getMail();
+	char** list;
+	int numMessages;
+	int numOctets;
 
 private:
 	bool write(char* input);
@@ -30,9 +34,9 @@ private:
 	bool quit();
 
 	email_t* email;
-	int numMessages;
 	char* response;
 	char* message;
+	char* data;
 	bool error;
 };
 

@@ -23,6 +23,7 @@
 #include "email.h"
 #include "smtp.h"
 #include "settings.h"
+#include "pop3.h"
 
 #define THREAD_SLEEP 100
 
@@ -780,6 +781,20 @@ static int MenuHome()
 static int MenuInbox()
 {
 	int menu = MENU_NONE;
+	POP3* pop = new POP3(internet, settings->popServer, settings->popPort, settings->popUsername, settings->popPassword, settings->popSSL);
+	pop->getMail();
+
+	//TODO: Need to implement limitng to MAX_OPTIONS ?
+
+	int ret;
+	int i = 0;
+	bool firstRun = true;
+	char buffer[24];
+	OptionList options;
+	for(i = 0; i < pop->numMessages && i < MAX_OPTIONS; i++){
+		sprintf(options.name[i], pop->list[i]);
+	}
+	options.length = pop->numMessages;
 
 	GuiText titleTxt("Inbox", 28, (GXColor){255, 255, 255, 255});
 	titleTxt.SetAlignment(ALIGN_LEFT, ALIGN_TOP);
@@ -788,21 +803,16 @@ static int MenuInbox()
 	GuiSound btnSoundOver(button_over_pcm, button_over_pcm_size, SOUND_PCM);
 	GuiImageData btnOutline(button_png);
 	GuiImageData btnOutlineOver(button_over_png);
-	GuiImageData btnLargeOutline(button_large_png);
-	GuiImageData btnLargeOutlineOver(button_large_over_png);
 
 	GuiTrigger trigA;
 	trigA.SetSimpleTrigger(-1, WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A, PAD_BUTTON_A);
-	GuiTrigger trigHome;
-	trigHome.SetButtonOnlyTrigger(-1, WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME, 0);
 
-	GuiText backBtnTxt("Back", 22, (GXColor){0, 0, 0, 255});
-	backBtnTxt.SetWrap(true, btnLargeOutline.GetWidth()-30);
-	GuiImage backBtnImg(&btnLargeOutline);
-	GuiImage backBtnImgOver(&btnLargeOutlineOver);
-	GuiButton backBtn(btnLargeOutline.GetWidth(), btnLargeOutline.GetHeight());
-	backBtn.SetAlignment(ALIGN_LEFT, ALIGN_TOP);
-	backBtn.SetPosition(50, 120);
+	GuiText backBtnTxt("Go Back", 22, (GXColor){0, 0, 0, 255});
+	GuiImage backBtnImg(&btnOutline);
+	GuiImage backBtnImgOver(&btnOutlineOver);
+	GuiButton backBtn(btnOutline.GetWidth(), btnOutline.GetHeight());
+	backBtn.SetAlignment(ALIGN_LEFT, ALIGN_BOTTOM);
+	backBtn.SetPosition(100, -35);
 	backBtn.SetLabel(&backBtnTxt);
 	backBtn.SetImage(&backBtnImg);
 	backBtn.SetImageOver(&backBtnImgOver);
@@ -810,27 +820,49 @@ static int MenuInbox()
 	backBtn.SetTrigger(&trigA);
 	backBtn.SetEffectGrow();
 
+	GuiOptionBrowser optionBrowser(552, 248, &options);
+	optionBrowser.SetPosition(0, 108);
+	optionBrowser.SetAlignment(ALIGN_CENTRE, ALIGN_TOP);
+	optionBrowser.SetCol2Position(185);
+
 	HaltGui();
 	GuiWindow w(screenwidth, screenheight);
-	w.Append(&titleTxt);
 	w.Append(&backBtn);
-
+	mainWindow->Append(&optionBrowser);
 	mainWindow->Append(&w);
-
+	mainWindow->Append(&titleTxt);
 	ResumeGui();
 
 	while(menu == MENU_NONE)
 	{
 		usleep(THREAD_SLEEP);
 
+		ret = optionBrowser.GetClickedOption();
+
+		//Code to display clicked message
+		
+
+		if(ret >= 0 || firstRun) //Updates data if user has changed something (deleted, etc.)
+		{
+			firstRun = false;
+
+			for(i = 0; i < pop->numMessages && i < MAX_OPTIONS; i++){
+				sprintf (options.value[i], "%s", pop->list[i]);
+			}
+
+			optionBrowser.TriggerUpdate();
+		}
+
 		if(backBtn.GetState() == STATE_CLICKED)
 		{
 			menu = MENU_HOME;
 		}
 	}
-
 	HaltGui();
+	mainWindow->Remove(&optionBrowser);
 	mainWindow->Remove(&w);
+	mainWindow->Remove(&titleTxt);
+	delete pop;
 	return menu;
 }
 
